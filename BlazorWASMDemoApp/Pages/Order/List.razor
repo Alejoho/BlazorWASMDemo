@@ -28,7 +28,11 @@ else
         @if (_orderResponse.Orders is null)
         {
             <tr>
-                <td colspan="3">Loading...</td>
+                <td colspan="3" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </td>
             </tr>
         }
         else
@@ -36,7 +40,7 @@ else
             @foreach (var order in _orderResponse.Orders)
             {
                 var food = _orderResponse.Foods.FirstOrDefault(f => f.Id == order.FoodId);
-                
+
                 <tr>
                     <td>@order.OrderedBy</td>
                     <td>@order.Date</td>
@@ -58,7 +62,7 @@ else
 
 
 @code {
-    private OrderResponseModel _orderResponse=new();
+    private OrderResponseModel _orderResponse = new();
 
     private string _errorMessage = string.Empty;
 

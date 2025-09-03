@@ -25,7 +25,11 @@ else
         @if (_foods is null)
         {
             <tr>
-                <td colspan="3">Loading...</td>
+                <td colspan="6" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </td>
             </tr>
         }
         else
