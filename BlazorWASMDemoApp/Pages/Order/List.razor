@@ -1,0 +1,79 @@
+@page "/order/list"
+@using System.Net
+@inject HttpClient Http
+
+@if (string.IsNullOrWhiteSpace(_errorMessage) == false)
+{
+    <h1>Error</h1>
+    <h2>@_errorMessage</h2>
+}
+else
+{
+    <h1>List of Orders</h1>
+
+    <table class="table table-striped">
+        <caption class="visually-hidden">List of Orders</caption>
+        <thead class="bg-dark text-white">
+        <tr>
+            <th scope="col">Ordered By</th>
+            <th scope="col">Date</th>
+            <th scope="col">Meal</th>
+            <th scope="col">Price</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Total</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+        @if (_orderResponse.Orders is null)
+        {
+            <tr>
+                <td colspan="3">Loading...</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var order in _orderResponse.Orders)
+            {
+                var food = _orderResponse.Foods.FirstOrDefault(f => f.Id == order.FoodId);
+                
+                <tr>
+                    <td>@order.OrderedBy</td>
+                    <td>@order.Date</td>
+                    <td>@food?.Title</td>
+                    <td>@food?.Price.ToString("C")</td>
+                    <td>@order.Quantity</td>
+                    <td>@order.Total.ToString("C")</td>
+                    <td>
+                        <NavLink href="@($"/order/display/{order.Id}")"
+                                 class="btn btn-primary">Details
+                        </NavLink>
+                    </td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    private OrderResponseModel _orderResponse=new();
+
+    private string _errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        HttpResponseMessage response = await Http.GetAsync("api/order/list");
+
+        if (response is { IsSuccessStatusCode: true, StatusCode: HttpStatusCode.OK })
+        {
+            _orderResponse = await response.Content.ReadFromJsonAsync<OrderResponseModel>();
+        }
+        else
+        {
+            _errorMessage = response.ReasonPhrase;
+        }
+    }
+
+}
