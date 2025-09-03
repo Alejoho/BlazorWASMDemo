@@ -1,0 +1,64 @@
+﻿@page "/food/list"
+@using System.Net
+@inject HttpClient Http
+
+@if (string.IsNullOrWhiteSpace(_errorMessage) == false)
+{
+    <h1>Error</h1>
+    <h2>@_errorMessage</h2>
+}
+else
+{
+    <h1>Food List</h1>
+
+    <table class="table table-striped">
+        <caption class="visually-hidden">List of available food items with prices</caption>
+        <thead class="text-white table-dark">
+        <tr>
+            <th scope="col">Meal</th>
+            <th scope="col">Description</th>
+            <th scope="col">Price</th>
+        </tr>
+        </thead>
+        <tbody>
+
+        @if (_foods is null)
+        {
+            <tr>
+                <td colspan="3">Loading...</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var food in _foods)
+            {
+                <tr>
+                    <td>@food.Title</td>
+                    <td>@food.Description</td>
+                    <td>@String.Format("{0:C}", food.Price)</td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<FoodModel>? _foods;
+    private string _errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        HttpResponseMessage response = await Http.GetAsync("api/food");
+
+        if (response is { IsSuccessStatusCode: true, StatusCode: HttpStatusCode.OK })
+        {
+            _foods = await response.Content.ReadFromJsonAsync<List<FoodModel>>();
+        }
+        else
+        {
+            _errorMessage = response.ReasonPhrase;
+        }
+    }
+
+}
