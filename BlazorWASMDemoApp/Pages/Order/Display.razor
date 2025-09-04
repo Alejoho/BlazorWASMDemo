@@ -1,0 +1,115 @@
+@page "/order/display/{id:int}"
+@using System.Net
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+@if (_isNotFound == true)
+{
+    <h1>The Order Was Not Found</h1>
+}
+else if (_orderDisplay is null)
+{
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <h1>Order Details</h1>
+
+    <table class="table">
+        <caption class="visually-hidden">Order Details</caption>
+        <tbody>
+            <tr>
+                <th scope="row"><strong>Ordered By</strong></th>
+                <td>@_orderDisplay.Order.OrderedBy</td>
+            </tr>
+            <tr>
+                <th scope="row"><strong>Ordered On</strong></th>
+                <td>
+                    <time datetime="@_orderDisplay.Order.Date.ToString("s")">@_orderDisplay.Order.Date</time>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row"><strong>Meal</strong></th>
+                <td>@_orderDisplay.Food.Title</td>
+            </tr>
+            <tr>
+                <th scope="row"><strong>Price</strong></th>
+                <td>@_orderDisplay.Food.Price.ToString("C")</td>
+            </tr>
+            <tr>
+                <th scope="row"><strong>Quantity</strong></th>
+                <td>@_orderDisplay.Order.Quantity</td>
+            </tr>
+            <tr>
+                <th scope="row"><strong>Total</strong></th>
+                <td>@_orderDisplay.Order.Total.ToString("C")</td>
+            </tr>       
+        </tbody>
+    </table>
+
+    <EditForm Model="_orderUpdate" OnValidSubmit="UpdateOrder">
+        <DataAnnotationsValidator/>
+        <ValidationSummary Model="_orderUpdate"/>
+
+        <div>
+            <label for="new-name" class="form-label">Ordered By</label>
+            <InputText id="new-name" @bind-Value="_orderUpdate.NewName" class="form-control"/>
+            <div class="validation-wrapper">
+                <ValidationMessage For="(() => _orderUpdate.NewName)"></ValidationMessage>
+            </div>
+        </div>
+        <div>
+            <input type="submit" value="Update Client" class="btn btn-primary">
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+
+    private OrderDisplayModel _orderDisplay;
+    private OrderUpdateModel _orderUpdate = new();
+    private string _errorMessage = string.Empty;
+
+    private bool _isNotFound = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        HttpResponseMessage response = await Http.GetAsync($"api/order/{Id}");
+
+        if (response is { IsSuccessStatusCode: true, StatusCode: HttpStatusCode.OK })
+        {
+            _orderDisplay = await response.Content.ReadFromJsonAsync<OrderDisplayModel>();
+            _orderUpdate.Id = _orderDisplay.Order.Id;
+            _orderUpdate.NewName = _orderDisplay.Order.OrderedBy;
+        }
+        else
+        {
+            _errorMessage = response.ReasonPhrase;
+        }
+    }
+
+    private async Task UpdateOrder()
+    {
+        try
+        {
+            var response = await Http.PatchAsJsonAsync("api/order", _orderUpdate);
+            if(response is{ IsSuccessStatusCode:true , StatusCode:HttpStatusCode.OK })
+            {
+                _orderDisplay.Order.OrderedBy = _orderUpdate.NewName;
+            }
+            else
+            {
+                _errorMessage = response.ReasonPhrase;    
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+}
