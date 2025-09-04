@@ -47,7 +47,28 @@ else
             <tr>
                 <th scope="row"><strong>Total</strong></th>
                 <td>@_orderDisplay.Order.Total.ToString("C")</td>
-            </tr>       
+            </tr>
+            <tr>
+                @if (_confirmDelete is false)
+                {
+                    <td colspan="2">
+                        <a class="btn btn-danger" @onclick="() => _confirmDelete=true">
+                            Delete
+                            Order</a>
+                    </td>
+                }
+                else
+                {
+                    <td colspan="2">
+                        <a class="btn btn-outline-danger" @onclick="DeleteOrder">
+                            Confirm Delete
+                        </a>
+                        <a class="btn btn-secondary" @onclick="() => _confirmDelete = false">
+                            Cancel
+                        </a>
+                    </td>
+                }
+            </tr>
         </tbody>
     </table>
 
@@ -69,13 +90,15 @@ else
 }
 
 @code {
-    [Parameter] public int Id { get; set; }
+    [Parameter] 
+    public int Id { get; set; }
 
     private OrderDisplayModel _orderDisplay;
     private OrderUpdateModel _orderUpdate = new();
     private string _errorMessage = string.Empty;
 
     private bool _isNotFound = false;
+    private bool _confirmDelete = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -110,6 +133,15 @@ else
         catch (Exception ex)
         {
             _errorMessage = ex.Message;
+        }
+    }
+
+    private async Task DeleteOrder()
+    {
+        var response = await Http.DeleteAsync($"api/order?id={Id}");
+
+        if (response is { IsSuccessStatusCode: true, StatusCode: HttpStatusCode.OK }){
+            NavigationManager.NavigateTo("order/create");            
         }
     }
 }
