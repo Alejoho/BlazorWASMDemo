@@ -22,53 +22,53 @@ else
     <table class="table">
         <caption class="visually-hidden">Order Details</caption>
         <tbody>
-            <tr>
-                <th scope="row"><strong>Ordered By</strong></th>
-                <td>@_orderDisplay.Order.OrderedBy</td>
-            </tr>
-            <tr>
-                <th scope="row"><strong>Ordered On</strong></th>
-                <td>
-                    <time datetime="@_orderDisplay.Order.Date.ToString("s")">@_orderDisplay.Order.Date</time>
+        <tr>
+            <th scope="row"><strong>Ordered By</strong></th>
+            <td>@_orderDisplay.Order.OrderedBy</td>
+        </tr>
+        <tr>
+            <th scope="row"><strong>Ordered On</strong></th>
+            <td>
+                <time datetime="@_orderDisplay.Order.Date.ToString("s")">@_orderDisplay.Order.Date</time>
+            </td>
+        </tr>
+        <tr>
+            <th scope="row"><strong>Meal</strong></th>
+            <td>@_orderDisplay.Food.Title</td>
+        </tr>
+        <tr>
+            <th scope="row"><strong>Price</strong></th>
+            <td>@_orderDisplay.Food.Price.ToString("C")</td>
+        </tr>
+        <tr>
+            <th scope="row"><strong>Quantity</strong></th>
+            <td>@_orderDisplay.Order.Quantity</td>
+        </tr>
+        <tr>
+            <th scope="row"><strong>Total</strong></th>
+            <td>@_orderDisplay.Order.Total.ToString("C")</td>
+        </tr>
+        <tr>
+            @if (_confirmDelete is false)
+            {
+                <td colspan="2">
+                    <a class="btn btn-danger" @onclick="() => _confirmDelete=true">
+                        Delete
+                        Order</a>
                 </td>
-            </tr>
-            <tr>
-                <th scope="row"><strong>Meal</strong></th>
-                <td>@_orderDisplay.Food.Title</td>
-            </tr>
-            <tr>
-                <th scope="row"><strong>Price</strong></th>
-                <td>@_orderDisplay.Food.Price.ToString("C")</td>
-            </tr>
-            <tr>
-                <th scope="row"><strong>Quantity</strong></th>
-                <td>@_orderDisplay.Order.Quantity</td>
-            </tr>
-            <tr>
-                <th scope="row"><strong>Total</strong></th>
-                <td>@_orderDisplay.Order.Total.ToString("C")</td>
-            </tr>
-            <tr>
-                @if (_confirmDelete is false)
-                {
-                    <td colspan="2">
-                        <a class="btn btn-danger" @onclick="() => _confirmDelete=true">
-                            Delete
-                            Order</a>
-                    </td>
-                }
-                else
-                {
-                    <td colspan="2">
-                        <a class="btn btn-outline-danger" @onclick="DeleteOrder">
-                            Confirm Delete
-                        </a>
-                        <a class="btn btn-secondary" @onclick="() => _confirmDelete = false">
-                            Cancel
-                        </a>
-                    </td>
-                }
-            </tr>
+            }
+            else
+            {
+                <td colspan="2">
+                    <a class="btn btn-outline-danger" @onclick="DeleteOrder">
+                        Confirm Delete
+                    </a>
+                    <a class="btn btn-secondary" @onclick="() => _confirmDelete = false">
+                        Cancel
+                    </a>
+                </td>
+            }
+        </tr>
         </tbody>
     </table>
 
@@ -90,8 +90,7 @@ else
 }
 
 @code {
-    [Parameter] 
-    public int Id { get; set; }
+    [Parameter] public int Id { get; set; }
 
     private OrderDisplayModel _orderDisplay;
     private OrderUpdateModel _orderUpdate = new();
@@ -121,13 +120,13 @@ else
         try
         {
             var response = await Http.PatchAsJsonAsync("api/order", _orderUpdate);
-            if(response is{ IsSuccessStatusCode:true , StatusCode:HttpStatusCode.OK })
+            if (response is { IsSuccessStatusCode: true, StatusCode: HttpStatusCode.OK })
             {
                 _orderDisplay.Order.OrderedBy = _orderUpdate.NewName;
             }
             else
             {
-                _errorMessage = response.ReasonPhrase;    
+                _errorMessage = response.ReasonPhrase;
             }
         }
         catch (Exception ex)
@@ -140,8 +139,10 @@ else
     {
         var response = await Http.DeleteAsync($"api/order?id={Id}");
 
-        if (response is { IsSuccessStatusCode: true, StatusCode: HttpStatusCode.OK }){
-            NavigationManager.NavigateTo("order/create");            
+        if (response is { IsSuccessStatusCode: true, StatusCode: HttpStatusCode.OK })
+        {
+            NavigationManager.NavigateTo("order/create");
         }
     }
+
 }

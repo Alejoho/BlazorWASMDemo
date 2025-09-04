@@ -1,0 +1,105 @@
+@page "/order/create"
+@using System.Net
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+@if (string.IsNullOrWhiteSpace(_errorMessage) == false)
+{
+    <h1>Error</h1>
+    <h2>@_errorMessage</h2>
+}
+else
+{
+    <h1>Create Order</h1>
+
+    <EditForm Model="_order" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator/>
+        <ValidationSummary Model="_order"/>
+
+        <div>
+            <label for="food-id" class="form-label">Meal</label>
+
+            @if (_foodItems.Count == 0)
+            {
+                <div class="form-control">
+                    <div class="text-start">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <InputSelect id="food-id" @bind-Value="_order.FoodId" class="form-control">
+                    <option hidden value="0" selected>Select a meal</option>
+                    @foreach (var food in _foodItems)
+                    {
+                        <option value="@food.Id">@String.Format("{0} - {1:C}", food.Title, food.Price)</option>
+                    }
+                </InputSelect>
+                <div class="validation-wrapper">
+                    <ValidationMessage For="(() => _order.FoodId)"/>
+                </div>
+            }
+        </div>
+
+        <div>
+            <label for="quantity" class="form-label">Quantity</label>
+            <InputNumber id="quantity" @bind-Value="_order.Quantity" class="form-control"></InputNumber>
+            <div class="validation-wrapper">
+                <ValidationMessage For="(() => _order.Quantity)"></ValidationMessage>
+            </div>
+        </div>
+
+        <div>
+            <label for="ordered-by" class="form-label">Ordered By</label>
+            <InputText id="ordered-by" @bind-Value="_order.OrderedBy" class="form-control"></InputText>
+            <div class="validation-wrapper">
+                <ValidationMessage For="(() => _order.OrderedBy)"></ValidationMessage>
+            </div>
+        </div>
+
+        <div>
+            <input type="submit" value="Create Order" class="btn btn-primary mt-2"/>
+        </div>
+    </EditForm>
+}
+
+@code {
+    private List<FoodModel> _foodItems = new();
+    private OrderModel _order = new();
+    private string? _errorMessage = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var response = await Http.GetAsync("api/food");
+
+        if (response is { IsSuccessStatusCode: true, StatusCode: HttpStatusCode.OK })
+        {
+            _foodItems = await response.Content.ReadFromJsonAsync<List<FoodModel>>() ?? _foodItems;
+        }
+        else
+        {
+            _errorMessage = response.ReasonPhrase;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/order/create", _order);
+            if (response is { IsSuccessStatusCode: true, StatusCode: HttpStatusCode.OK })
+            {
+                int id = await response.Content.ReadFromJsonAsync<int>();
+                NavigationManager.NavigateTo($"order/display/{id}");
+            }
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = ex.Message;
+        }
+    }
+
+}
