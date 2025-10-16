@@ -11,8 +11,8 @@ namespace BlazorWASMDemoApp
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://apidiner.somee.com") });
-            
+            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://apidemo96.azurewebsites.net") });
+
             await builder.Build().RunAsync();
         }
     }
